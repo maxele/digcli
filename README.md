@@ -4,6 +4,9 @@ This is a simple client for digitalesregister.it written in python.
 
 ## installation
 
+To run the script just use `python digcli.py`.
+
+To install this script on linux you can copy the script to your bin directory.
 `sudo cp digcli.py /usr/local/bin/`
 
 ## getting started
