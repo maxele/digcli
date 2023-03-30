@@ -11,6 +11,7 @@ json_data = {
         "username":"",
         "password":""
 }
+
 short_lesson_name = {
         "Telekommunikation":"Tele",
         "Technologie und Planung":"TePe",
@@ -22,12 +23,12 @@ short_lesson_name = {
 }
 
 short_teacher_name = {
-        "Brands da Silva":"Brands",
 }
 
 host = 'digitalesregister.it'
-default_subdomain = 'tfobz'
+default_subdomain = ''
 
+# -------------------------------------------------------- #
 
 login_url = '/v2/api/auth/login'
 dashboard_url = '/v2/api/student/dashboard/dashboard'
@@ -391,7 +392,7 @@ commands = [
     {
         'name':'fetch',
         'short':'-f',
-        'description':'Get general informations',
+        'description':'Get general information',
         'function':fetch
     },
     {
@@ -427,13 +428,13 @@ commands = [
     {
         'name':'subjects',
         'short':'-s',
-        'description':'Get general informations about all subjects.',
+        'description':'Get general information about all subjects.',
         'function':subjects,
     },
     {
         'name':'absences',
         'short':'-a',
-        'description':'Get informations about how much you where absent from each day.',
+        'description':'Get information about how much you where absent from each day.',
         'function':absences,
     },
 ]
@@ -443,7 +444,7 @@ variables = {
     'credentials':False,
     'subdomain':default_subdomain,
     'spacer':'\0',
-    'hours':10,
+    'hours':11,
 }
 
 def help():
@@ -551,6 +552,11 @@ if __name__ == '__main__':
     if not found_func:
         print("Nothing to do...")
         exit()
+
+    if variables['subdomain'] == "":
+        variables['subdomain'] = input("Subdomain: ")
+    else:
+        print(variables['subdomain'])
 
     if json_data['password'] == "" and json_data['username'] != "":
         print("Username:", json_data['username'])
