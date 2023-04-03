@@ -363,7 +363,7 @@ def gradecalc(cookies, data=None):
 
     print("GRADECALC:")
     printCol("0", 4, "0")
-    printCol("Don't imort", -1, "1;39")
+    printCol("Don't import", -1, "1;39")
     print()
     for i in range(len(data["subjects"])):
         printCol(str(i+1), 4, "0")
