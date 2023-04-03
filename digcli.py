@@ -26,7 +26,7 @@ short_teacher_name = {
 }
 
 host = 'digitalesregister.it'
-default_subdomain = ''
+default_subdomain = 'tfobz'
 
 # -------------------------------------------------------- #
 
@@ -301,26 +301,26 @@ def subjects(cookies):
         if subject['averageSemester'] == None:
             continue
 
-        print(end='    ')
-        l = 4;
-        for grade in subject['grades']:
-            print(end='(')
-            if not 'grade' in grade:
-                print("None", end='')
-            elif float(grade['grade']) >= 5.5:
-                printCol(grade['grade'], -1, '1;32')
-            else:
-                printCol(grade['grade'], -1, '1;31')
-            print(end=', ')
-            printCol(str(grade['weight']), -1, '1;39')
-            l += len(grade['grade']) + len(str(grade['weight'])) + 5
-            print(end=') ')
-        print()
-        if l < 36:
-            l = 36
-        for i in range(l-1):
-            printCol('-', -1, '1;39')
-        print()
+        # print(end='    ')
+        # l = 4
+        # for grade in subject['grades']:
+        #     print(end='(')
+        #     if not 'grade' in grade:
+        #         print("None", end='')
+        #     elif float(grade['grade']) >= 5.5:
+        #         printCol(grade['grade'], -1, '1;32')
+        #     else:
+        #         printCol(grade['grade'], -1, '1;31')
+        #     print(end=', ')
+        #     printCol(str(grade['weight']), -1, '1;39')
+        #     l += len(grade['grade']) + len(str(grade['weight'])) + 5
+        #     print(end=') ')
+        # print()
+        # if l < 36:
+        #     l = 36
+        # for i in range(l-1):
+        #     printCol('-', -1, '1;39')
+        # print()
 
 def absences(cookies):
     import datetime
@@ -355,6 +355,131 @@ def absences(cookies):
             printCol(str(int(missing_minutes[i]/total_minutes[i]*100)/100), 8, "0")
             # printCol(str(int(missing_minutes[i]/50*100)/100), 8, "0")
             print()
+
+def gradecalc(cookies, data=None):
+    if data == None:
+        res = requests.post('https://' + host + grades_url, cookies=cookies)
+        data = json.loads(res.content.decode())
+
+    print("GRADECALC:")
+    printCol("0", 4, "0")
+    printCol("Don't imort", -1, "1;39")
+    print()
+    for i in range(len(data["subjects"])):
+        printCol(str(i+1), 4, "0")
+        if data["subjects"][i]['averageSemester'] == None:
+            printCol("None", 4, '1;39')
+        elif data["subjects"][i]['averageSemester'] >= 5.5:
+            printCol(str(data["subjects"][i]['averageSemester']), 4, '1;32')
+        else:
+            printCol(str(data["subjects"][i]['averageSemester']), 4, '1;31')
+        printCol(" " + str(len(data["subjects"][i]['grades'])), 4, '0;39')
+        if data["subjects"][i]["subject"]["name"] in short_lesson_name:
+            printCol(" " + short_lesson_name[data["subjects"][i]["subject"]["name"]], -1, "1;39")
+        else:
+            printCol(" " + data["subjects"][i]["subject"]["name"], -1, "1;39")
+        print()
+    
+    c = input("Choose which grades to import (q to quit): ")
+    grades = []
+    sname = "None"
+    if c == 'q':
+        for i in range(len(data["subjects"])+3):
+            print(end="\r\033[K\033[A")
+        return
+    try:
+        int(c)
+    except: 
+        for i in range(len(data["subjects"])+3):
+            print(end="\r\033[K\033[A")
+        printCol("Invalid option\n", -1, '1;31')
+        gradecalc(cookies, data)
+        return
+    if int(c) < 0 or int(c) > len(data["subjects"]):
+        for i in range(len(data["subjects"])+3):
+            print(end="\r\033[K\033[A")
+        printCol("Invalid subject\n", -1, '1;31')
+        gradecalc(cookies, data)
+        return
+    elif (int(c) != 0):
+        sname = data["subjects"][int(c)-1]["subject"]["name"]
+        for grade in data["subjects"][int(c)-1]['grades']:
+            if 'grade' in grade:
+                grades.append([grade['grade'], grade['weight']])
+
+    c = ""
+    l = len(data["subjects"])+2
+    while c != "q" and c != "Q":
+        for i in range(l):
+            print(end="\r\033[K\033[A")
+        print(end="\033[K")
+        print("Enter h for help.")
+        printCol(sname + "\n", -1, '1;39')
+        l = 3
+
+        if c == "h":
+            print("a <grade> <weight>  to add a grade (weight in %)")
+            print("d <index>           to remove a grade")
+            print("p                   to previous menu")
+            print("q                   to quit")
+            print("enter               to print list of grades again")
+            l += 5
+        elif c.startswith('p'):
+            for i in range(l):
+                print(end="\r\033[K\033[A")
+            gradecalc(cookies, data)
+            return
+        elif c.startswith('d'):
+            if len(c.split(' ')) == 2:
+                try:
+                    grades.pop(int(c.split(' ')[1]))
+                except IndexError:
+                    print("Invalid index: " + int(c.split(' ')[1]))
+                    l += 1
+                # except:
+                #     for i in range(l):
+                #         print(end="\r\033[K\033[A")
+                #     print(end="\033[K")
+                #     printCol("Invalid option for delete", -1, "1;31")
+                c = ""
+            else:
+                print("Invalid index")
+        elif c.startswith('a'):
+            if len(c.split(' ')) == 3:
+                try: 
+                    int(c.split(' ')[1])
+                    grades.append([c.split(' ')[1], int(c.split(' ')[2])])
+                except:
+                    printCol("Invalid option for add", -1, "1;31")
+                c = ""
+            else:
+                print("Invalid syntax for Add")
+        if c == "":
+            t = 0
+            g = 0
+            for i in range(len(grades)):
+                printCol(str(i), 4, "0")
+                t += float(grades[i][0]) * grades[i][1]
+                g += grades[i][1]
+                if float(grades[i][0]) >= 5.5:
+                    printCol(grades[i][0], 4, '1;32')
+                else:
+                    printCol(grades[i][0], 4, '1;31')
+                print("", grades[i][1])
+            if g != 0:
+                print(end="Average: ")
+                if t/g >= 5.5:
+                    printCol(str(int(t/g*100)/100)+"\n", -1, '1;32')
+                else:
+                    printCol(str(int(t/g*100)/100)+"\n", -1, '1;31')
+            else:
+                print("Average: None")
+            l += len(grades) + 1
+
+        c = input("> ")
+
+    for i in range(l+1):
+        print(end="\r\033[K\033[A")
 
 commands = [
     {
@@ -436,6 +561,12 @@ commands = [
         'short':'-a',
         'description':'Get information about how much you where absent from each day.',
         'function':absences,
+    },
+    {
+        'name':'gradecalc',
+        'short':'-gc',
+        'description':'Calculate grades.',
+        'function':gradecalc,
     },
 ]
 
@@ -555,8 +686,8 @@ if __name__ == '__main__':
 
     if variables['subdomain'] == "":
         variables['subdomain'] = input("Subdomain: ")
-    else:
-        print(variables['subdomain'])
+    # else:
+    #     print(variables['subdomain'])
 
     if json_data['password'] == "" and json_data['username'] != "":
         print("Username:", json_data['username'])
