@@ -392,13 +392,13 @@ def gradecalc(cookies, data=None):
     except: 
         for i in range(len(data["subjects"])+3):
             print(end="\r\033[K\033[A")
-        printCol("Invalid option\n", -1, '1;31')
+        printCol("Invalid option (enter h for help)\n", -1, '1;31')
         gradecalc(cookies, data)
         return
     if int(c) < 0 or int(c) > len(data["subjects"]):
         for i in range(len(data["subjects"])+3):
             print(end="\r\033[K\033[A")
-        printCol("Invalid subject\n", -1, '1;31')
+        printCol("Invalid subject (enter h for help)\n", -1, '1;31')
         gradecalc(cookies, data)
         return
     elif (int(c) != 0):
@@ -434,7 +434,7 @@ def gradecalc(cookies, data=None):
                 try:
                     grades.pop(int(c.split(' ')[1]))
                 except IndexError:
-                    print("Invalid index: " + int(c.split(' ')[1]))
+                    print("Invalid index: " + int(c.split(' ')[1]) + " (enter h for help)")
                     l += 1
                 # except:
                 #     for i in range(l):
@@ -447,13 +447,13 @@ def gradecalc(cookies, data=None):
         elif c.startswith('a'):
             if len(c.split(' ')) == 3:
                 try: 
-                    int(c.split(' ')[1])
+                    float(c.split(' ')[1])
                     grades.append([c.split(' ')[1], int(c.split(' ')[2])])
                 except:
-                    printCol("Invalid option for add", -1, "1;31")
+                    printCol("Invalid option for add (enter h for help)", -1, "1;31")
                 c = ""
             else:
-                print("Invalid syntax for Add")
+                print("Invalid syntax for Add (enter h for help)")
         if c == "":
             t = 0
             g = 0
