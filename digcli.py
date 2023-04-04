@@ -64,6 +64,17 @@ def printCol(msg, n, c):
         print(msg, end='')
         print('\033[0m', end='')
 
+def printGrade(g, n):
+    if g == None:
+        printCol("None", n, '1;39')
+        return
+    g = int(float(g)*100)/100
+    if g >= 6:
+        printCol(str(g), n, "1;32")
+    elif g < 5.5:
+        printCol(str(g), n, "1;31")
+    else:
+        printCol(str(g), n, "1;33")
 
 def dashboard(cookies, future=True, n=7):
     res = requests.post('https://' + host +  dashboard_url, cookies=cookies, json={"viewFuture":future})
@@ -288,39 +299,13 @@ def subjects(cookies):
         else:
             printCol(subject['subject']['name'], 16, '1;39')
         print(':  ', end='')
-        if subject['averageSemester'] == None:
-            print("None", end='')
-        elif subject['averageSemester'] >= 5.5:
-            printCol(str(subject['averageSemester']), 4, '1;32')
-        else:
-            printCol(str(subject['averageSemester']), 4, '1;31')
+        printGrade(subject['averageSemester'], 4)
         print(end='  ')
         printCol(str(subject['countObservations']), 4, '0;39')
         print(end='  ')
         print(str(subject['absences']))
         if subject['averageSemester'] == None:
             continue
-
-        # print(end='    ')
-        # l = 4
-        # for grade in subject['grades']:
-        #     print(end='(')
-        #     if not 'grade' in grade:
-        #         print("None", end='')
-        #     elif float(grade['grade']) >= 5.5:
-        #         printCol(grade['grade'], -1, '1;32')
-        #     else:
-        #         printCol(grade['grade'], -1, '1;31')
-        #     print(end=', ')
-        #     printCol(str(grade['weight']), -1, '1;39')
-        #     l += len(grade['grade']) + len(str(grade['weight'])) + 5
-        #     print(end=') ')
-        # print()
-        # if l < 36:
-        #     l = 36
-        # for i in range(l-1):
-        #     printCol('-', -1, '1;39')
-        # print()
 
 def absences(cookies):
     import datetime
@@ -356,22 +341,6 @@ def absences(cookies):
             # printCol(str(int(missing_minutes[i]/50*100)/100), 8, "0")
             print()
 
-def printgrades(subjects):
-    for i in range(len(subjects)):
-        printCol(str(i+1), 4, "0")
-        if subjects[i]['averageSemester'] == None:
-            printCol("None", 4, '1;39')
-        elif subjects[i]['averageSemester'] >= 5.5:
-            printCol(str(subjects[i]['averageSemester']), 4, '1;32')
-        else:
-            printCol(str(subjects[i]['averageSemester']), 4, '1;31')
-        printCol(" " + str(len(subjects[i]['grades'])), 4, '0;39')
-        if subjects[i]["subject"]["name"] in short_lesson_name:
-            printCol(" " + short_lesson_name[subjects[i]["subject"]["name"]], -1, "1;39")
-        else:
-            printCol(" " + subjects[i]["subject"]["name"], -1, "1;39")
-        print()
-
 def gradecalc(cookies, data=None, sort=False):
     if data == None:
         res = requests.post('https://' + host + grades_url, cookies=cookies)
@@ -388,12 +357,7 @@ def gradecalc(cookies, data=None, sort=False):
             for i in range(len(data["subjects"])):
                 data["subjects"][i]['index'] = i+1
                 printCol(str(i+1), 4, "0")
-                if data["subjects"][i]['averageSemester'] == None:
-                    printCol("None", 4, '1;39')
-                elif data["subjects"][i]['averageSemester'] >= 5.5:
-                    printCol(str(data["subjects"][i]['averageSemester']), 4, '1;32')
-                else:
-                    printCol(str(data["subjects"][i]['averageSemester']), 4, '1;31')
+                printGrade(data["subjects"][i]["averageSemester"], 4)
                 printCol(" " + str(len(data["subjects"][i]['grades'])), 4, '0;39')
                 if data["subjects"][i]["subject"]["name"] in short_lesson_name:
                     printCol(" " + short_lesson_name[data["subjects"][i]["subject"]["name"]], -1, "1;39")
@@ -410,12 +374,7 @@ def gradecalc(cookies, data=None, sort=False):
             tmpdata = sorted(tmpdata, key=sortfunc, reverse=True)
             for i in range(len(tmpdata)):
                 printCol(str(i+1), 4, "0")
-                if tmpdata[i]['averageSemester'] == None:
-                    printCol("None", 4, '1;39')
-                elif tmpdata[i]['averageSemester'] >= 5.5:
-                    printCol(str(tmpdata[i]['averageSemester']), 4, '1;32')
-                else:
-                    printCol(str(tmpdata[i]['averageSemester']), 4, '1;31')
+                printGrade(tmpdata[i]['averageSemester'], 4)
                 printCol(" " + str(len(tmpdata[i]['grades'])), 4, '0;39')
                 if tmpdata[i]["subject"]["name"] in short_lesson_name:
                     printCol(" " + short_lesson_name[tmpdata[i]["subject"]["name"]], -1, "1;39")
@@ -526,17 +485,11 @@ def gradecalc(cookies, data=None, sort=False):
                 printCol(str(i), 4, "0")
                 t += float(grades[i][0]) * grades[i][1]
                 g += grades[i][1]
-                if float(grades[i][0]) >= 5.5:
-                    printCol(grades[i][0], 4, '1;32')
-                else:
-                    printCol(grades[i][0], 4, '1;31')
+                printGrade(grades[i][0], 4)
                 print("", grades[i][1])
             if g != 0:
                 print(end="Average: ")
-                if t/g >= 5.5:
-                    printCol(str(int(t/g*100)/100)+"\n", -1, '1;32')
-                else:
-                    printCol(str(int(t/g*100)/100)+"\n", -1, '1;31')
+                printGrade(t/g, -1)
             else:
                 print("Average: None")
             l += len(grades) + 1
@@ -677,17 +630,6 @@ def unknown_argument(arg, subcommand):
     print(f'Argument "{arg}" not allowed for "{subcommand}"!')
 
 if __name__ == '__main__':
-    # host = variables['subdomain'] + host
-    # res = requests.post('https://' + host +  login_url, json=json_data)
-    # cookies = res.cookies
-    # requests.get('https://tfobz.digitalesregister.it/v2/?semesterWechsel=1')
-    # res = requests.post('https://' + host + grades_url, cookies=cookies, json={'studentId':6263})
-    # data = json.loads(res.content.decode())
-    # for subject in data['subjects']:
-    #     printSpaced(subject['subject']['name'], 24)
-    #     print('  ' + str(subject['averageSemester']))
-    # exit()
-
     if len(argv) <= 1:
         help()
         exit(-1)
