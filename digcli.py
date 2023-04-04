@@ -410,16 +410,18 @@ def gradecalc(cookies, data=None, sort=False):
             for i in range(len(data["subjects"])+4): print(end="\r\033[K\033[A")
             printCol("Invalid subject (enter h for help)\n", -1, '1;31')
             continue
-        elif (int(c) != 0):
-            if sort:
+        else:
+            if int(c) != 0 and sort:
                 c = tmpdata[int(c)-1]['index']
             break
 
-    if c != 0:
+    if int(c) != 0:
         sname = data["subjects"][int(c)-1]["subject"]["name"]
         for grade in data["subjects"][int(c)-1]['grades']:
             if 'grade' in grade:
                 grades.append([grade['grade'], grade['weight']])
+    else:
+        sname = "None"
 
     c = ""
     l = len(data["subjects"])+2
@@ -468,6 +470,8 @@ def gradecalc(cookies, data=None, sort=False):
                 c = ""
             else:
                 print("Invalid syntax for Add (enter h for help)")
+        else:
+            c = ""
         if c == "":
             t = 0
             g = 0
@@ -480,14 +484,15 @@ def gradecalc(cookies, data=None, sort=False):
             if g != 0:
                 print(end="Average: ")
                 printGrade(t/g, -1)
+                print()
             else:
                 print("Average: None")
-            l += len(grades) + 1
+            l += len(grades)+1
 
         c = input("> ")
 
-    for i in range(l+1):
-        print(end="\r\033[K\033[A")
+    # for i in range(l+1):
+    #     print(end="\r\033[K\033[A")
 
 commands = [
     {
