@@ -356,52 +356,117 @@ def absences(cookies):
             # printCol(str(int(missing_minutes[i]/50*100)/100), 8, "0")
             print()
 
-def gradecalc(cookies, data=None):
+def printgrades(subjects):
+    for i in range(len(subjects)):
+        printCol(str(i+1), 4, "0")
+        if subjects[i]['averageSemester'] == None:
+            printCol("None", 4, '1;39')
+        elif subjects[i]['averageSemester'] >= 5.5:
+            printCol(str(subjects[i]['averageSemester']), 4, '1;32')
+        else:
+            printCol(str(subjects[i]['averageSemester']), 4, '1;31')
+        printCol(" " + str(len(subjects[i]['grades'])), 4, '0;39')
+        if subjects[i]["subject"]["name"] in short_lesson_name:
+            printCol(" " + short_lesson_name[subjects[i]["subject"]["name"]], -1, "1;39")
+        else:
+            printCol(" " + subjects[i]["subject"]["name"], -1, "1;39")
+        print()
+
+def gradecalc(cookies, data=None, sort=False):
     if data == None:
         res = requests.post('https://' + host + grades_url, cookies=cookies)
         data = json.loads(res.content.decode())
 
-    print("GRADECALC:")
-    printCol("0", 4, "0")
-    printCol("Don't import", -1, "1;39")
     print()
-    for i in range(len(data["subjects"])):
-        printCol(str(i+1), 4, "0")
-        if data["subjects"][i]['averageSemester'] == None:
-            printCol("None", 4, '1;39')
-        elif data["subjects"][i]['averageSemester'] >= 5.5:
-            printCol(str(data["subjects"][i]['averageSemester']), 4, '1;32')
-        else:
-            printCol(str(data["subjects"][i]['averageSemester']), 4, '1;31')
-        printCol(" " + str(len(data["subjects"][i]['grades'])), 4, '0;39')
-        if data["subjects"][i]["subject"]["name"] in short_lesson_name:
-            printCol(" " + short_lesson_name[data["subjects"][i]["subject"]["name"]], -1, "1;39")
-        else:
-            printCol(" " + data["subjects"][i]["subject"]["name"], -1, "1;39")
+    while True:
+        printCol("GRADECALC:\n", -1, '1;39')
+        printCol("0", 4, "0")
+        printCol("Don't import", -1, "1;39")
         print()
-    
-    c = input("Choose which grades to import (q to quit): ")
-    grades = []
-    sname = "None"
-    if c == 'q':
-        for i in range(len(data["subjects"])+3):
-            print(end="\r\033[K\033[A")
-        return
-    try:
-        int(c)
-    except: 
-        for i in range(len(data["subjects"])+3):
-            print(end="\r\033[K\033[A")
-        printCol("Invalid option (enter h for help)\n", -1, '1;31')
-        gradecalc(cookies, data)
-        return
-    if int(c) < 0 or int(c) > len(data["subjects"]):
-        for i in range(len(data["subjects"])+3):
-            print(end="\r\033[K\033[A")
-        printCol("Invalid subject (enter h for help)\n", -1, '1;31')
-        gradecalc(cookies, data)
-        return
-    elif (int(c) != 0):
+        tmpdata = []
+        if not sort:
+            for i in range(len(data["subjects"])):
+                data["subjects"][i]['index'] = i+1
+                printCol(str(i+1), 4, "0")
+                if data["subjects"][i]['averageSemester'] == None:
+                    printCol("None", 4, '1;39')
+                elif data["subjects"][i]['averageSemester'] >= 5.5:
+                    printCol(str(data["subjects"][i]['averageSemester']), 4, '1;32')
+                else:
+                    printCol(str(data["subjects"][i]['averageSemester']), 4, '1;31')
+                printCol(" " + str(len(data["subjects"][i]['grades'])), 4, '0;39')
+                if data["subjects"][i]["subject"]["name"] in short_lesson_name:
+                    printCol(" " + short_lesson_name[data["subjects"][i]["subject"]["name"]], -1, "1;39")
+                else:
+                    printCol(" " + data["subjects"][i]["subject"]["name"], -1, "1;39")
+                print()
+        else:
+            def sortfunc(item):
+                if item['averageSemester'] != None:
+                    return float(item['averageSemester'])
+                else:
+                    return float(0)
+            tmpdata = data['subjects']
+            tmpdata = sorted(tmpdata, key=sortfunc, reverse=True)
+            for i in range(len(tmpdata)):
+                printCol(str(i+1), 4, "0")
+                if tmpdata[i]['averageSemester'] == None:
+                    printCol("None", 4, '1;39')
+                elif tmpdata[i]['averageSemester'] >= 5.5:
+                    printCol(str(tmpdata[i]['averageSemester']), 4, '1;32')
+                else:
+                    printCol(str(tmpdata[i]['averageSemester']), 4, '1;31')
+                printCol(" " + str(len(tmpdata[i]['grades'])), 4, '0;39')
+                if tmpdata[i]["subject"]["name"] in short_lesson_name:
+                    printCol(" " + short_lesson_name[tmpdata[i]["subject"]["name"]], -1, "1;39")
+                else:
+                    printCol(" " + tmpdata[i]["subject"]["name"], -1, "1;39")
+                print()
+        
+        c = input("Choose grades to import (q to quit, h for help, s to sort): ")
+        grades = []
+        sname = "None"
+        if c == 'q':
+            for i in range(len(data["subjects"])+4):
+                print(end="\r\033[K\033[A")
+            return
+        elif c == 'h':
+            for i in range(len(data["subjects"])+3):
+                print(end="\r\033[K\033[A")
+            print(end="\r\033[K")
+            printCol("Enter the index (the leftmost number) to select a number.\n", -1, '1;39')
+            printCol("  q     Quit\n", -1, '0;39')
+            printCol("  h     Print help\n", -1, '0;39')
+            printCol("  s     Toggle if grades should be sorted\n", -1, '0;39')
+            c = input("Press any key to continue")
+            for i in range(5):
+                print(end="\r\033[K\033[A")
+            print(end="\r\033[K")
+            continue
+        elif c == 's':
+            for i in range(len(data["subjects"])+3):
+                print(end="\r\033[K\033[A")
+            print(end="\r\033[K")
+            sort = not sort
+            continue
+
+        try:
+            int(c)
+        except: 
+            for i in range(len(data["subjects"])+4):
+                print(end="\r\033[K\033[A")
+            printCol("Invalid option (enter h for help)\n", -1, '1;31')
+            continue
+        if int(c) < 0 or int(c) > len(data["subjects"]):
+            for i in range(len(data["subjects"])+4): print(end="\r\033[K\033[A")
+            printCol("Invalid subject (enter h for help)\n", -1, '1;31')
+            continue
+        elif (int(c) != 0):
+            if sort:
+                c = tmpdata[int(c)-1]['index']
+            break
+
+    if c != 0:
         sname = data["subjects"][int(c)-1]["subject"]["name"]
         for grade in data["subjects"][int(c)-1]['grades']:
             if 'grade' in grade:
@@ -425,9 +490,9 @@ def gradecalc(cookies, data=None):
             print("enter               to print list of grades again")
             l += 5
         elif c.startswith('p'):
-            for i in range(l):
+            for i in range(l+1):
                 print(end="\r\033[K\033[A")
-            gradecalc(cookies, data)
+            gradecalc(cookies, data, sort)
             return
         elif c.startswith('d'):
             if len(c.split(' ')) == 2:
