@@ -37,13 +37,6 @@ notifications_url = '/v2/api/notification/unread'
 grades_url = '/v2/api/student/all_subjects'
 absences_url = '/v2/api/student/dashboard/absences'
 
-def printSpaced(msg, n):
-    print(msg[:n], end='')
-    l = len(msg)
-    while l < n:
-        print(' ', end='')
-        l+=1
-
 def printColCentered(msg, n, c):
     if n >= 0:
         print(f'\033[{c}m', end='')
@@ -54,10 +47,14 @@ def printColCentered(msg, n, c):
         print(msg, end='')
         print('\033[0m', end='')
 
-def printCol(msg, n, c):
+def printCol(msg, n, c='0;39'):
     if n >= 0:
         print(f'\033[{c}m', end='')
-        printSpaced(msg, n)
+        print(msg[:n], end='')
+        l = len(msg)
+        while l < n:
+            print(' ', end='')
+            l+=1
         print('\033[0m', end='')
     else:
         print(f'\033[{c}m', end='')
@@ -86,25 +83,25 @@ def dashboard(cookies, future=True, n=7):
         # print(i, day['date'], ':')
         for item in day['items']:
             if future:
-                printCol('+' + str(i) + ' ', int(math.log10(n)+1)+2, '0;39')
+                printCol('+' + str(i) + ' ', int(math.log10(n)+1)+2)
                 if 'deadlineFormatted' in item:
-                    printSpaced(item['deadlineFormatted'].split(',')[0], 3)
+                    printCol(item['deadlineFormatted'].split(',')[0], 3)
                 else:
-                    printSpaced("", 3)
+                    printCol("", 3)
             else:
-                printCol('-' + str(i+1) + ' ', int(math.log10(n)+1)+2, '0;39')
+                printCol('-' + str(i+1) + ' ', int(math.log10(n)+1)+2)
                 print(day['date'], end='')
             print(' ', end='')
             if 'label' in item:
                 if item['label'] in short_lesson_name:
-                    printSpaced(short_lesson_name[item['label']], 4)
+                    printCol(short_lesson_name[item['label']], 4)
                 else:
-                    printSpaced(item['label'], 4)
+                    printCol(item['label'], 4)
                 print(end=': ')
                 printCol(item['title'], 12, '1;39')
                 print(item['subtitle'])
             else:
-                printSpaced('', 4)
+                printCol('', 4)
                 print(end='  ')
                 printCol(item['title'], 12, '1;39')
                 print(item['subtitle'])
@@ -145,7 +142,7 @@ def printHour(day, i, cellen, normal_col, centered=False):
             else:
                 printCol(day['1']['1'][str(i)]['lesson']['subject']['name'], cellen, col)
     else:
-        printSpaced('', cellen)
+        printCol('', cellen)
 
 def calendar_extended(cookies, hours=11, cellen=16, spacer=' '):
     if spacer == '\0':
@@ -159,13 +156,6 @@ def calendar_extended(cookies, hours=11, cellen=16, spacer=' '):
         for day in data:
             if str(i) in data[day]['1']['1']:
                 printHour(data[day], i, cellen, "1;39", centered=False)
-                # if data[day]['1']['1'][str(i)]['isLesson']:
-                #     if data[day]['1']['1'][str(i)]['lesson']['subject']['name'] in short_lesson_name:
-                #         printCol(short_lesson_name[data[day]['1']['1'][str(i)]['lesson']['subject']['name']], cellen, lesson_col)
-                #     else:
-                #         printCol(data[day]['1']['1'][str(i)]['lesson']['subject']['name'], cellen, lesson_col)
-                # else:
-                #     printSpaced('', cellen)
             else:
                 t = i
                 while t >= 0:
@@ -191,7 +181,7 @@ def calendar_extended(cookies, hours=11, cellen=16, spacer=' '):
                             teachers += ', ' + teacher['lastName']
                     printCol(teachers[2:], cellen, teacher_col)
                 else:
-                    printSpaced('', cellen)
+                    printCol('', cellen)
             else:
                 t = i
                 while t >= 0:
@@ -263,34 +253,34 @@ def fetch(cookies):
             subjects_width_grades += 1
 
     printCol("GRADES:\n", -1, '1;39')
-    printSpaced("total:", space)
+    printCol("total:", space)
     print(grades_total)
-    printSpaced("average:", space)
+    printCol("average:", space)
     print(grades_sum / subjects_width_grades)
-    printSpaced("sum:", space)
+    printCol("sum:", space)
     print(grades_sum)
 
     res = requests.post('https://' + host +  absences_url, cookies=cookies)
     data = json.loads(res.content)
 
     printCol("\nABSENCES:\n", -1, '1;39')
-    printSpaced("total:", space)
+    printCol("total:", space)
     print(data['statistics']['counter'])
-    printSpaced("percentage:", space)
+    printCol("percentage:", space)
     print(data['statistics']['percentage'])
-    printSpaced("for school:", space)
+    printCol("for school:", space)
     print(data['statistics']['counterForSchool'])
-    printSpaced("not justified:", space)
+    printCol("not justified:", space)
     print(data['statistics']['notJustified'])
 
 def subjects(cookies):
     res = requests.post('https://' + host +  grades_url, cookies=cookies)
     data = json.loads(res.content.decode())
 
-    printCol("Subject name:", 18, '0;39')
-    printCol(" avg:", 6, '0;39')
-    printCol(" obs:", 6, '0;39')
-    printCol(" abs:", 6, '0;39')
+    printCol("Subject name:", 18)
+    printCol(" avg:", 6)
+    printCol(" obs:", 6)
+    printCol(" abs:", 6)
     print()
 
     for subject in data['subjects']:
@@ -301,7 +291,7 @@ def subjects(cookies):
         print(':  ', end='')
         printGrade(subject['averageSemester'], 4)
         print(end='  ')
-        printCol(str(subject['countObservations']), 4, '0;39')
+        printCol(str(subject['countObservations']), 4)
         print(end='  ')
         print(str(subject['absences']))
         if subject['averageSemester'] == None:
@@ -358,7 +348,7 @@ def gradecalc(cookies, data=None, sort=False):
                 data["subjects"][i]['index'] = i+1
                 printCol(str(i+1), 4, "0")
                 printGrade(data["subjects"][i]["averageSemester"], 4)
-                printCol(" " + str(len(data["subjects"][i]['grades'])), 4, '0;39')
+                printCol(" " + str(len(data["subjects"][i]['grades'])), 4)
                 if data["subjects"][i]["subject"]["name"] in short_lesson_name:
                     printCol(" " + short_lesson_name[data["subjects"][i]["subject"]["name"]], -1, "1;39")
                 else:
@@ -375,7 +365,7 @@ def gradecalc(cookies, data=None, sort=False):
             for i in range(len(tmpdata)):
                 printCol(str(i+1), 4, "0")
                 printGrade(tmpdata[i]['averageSemester'], 4)
-                printCol(" " + str(len(tmpdata[i]['grades'])), 4, '0;39')
+                printCol(" " + str(len(tmpdata[i]['grades'])), 4)
                 if tmpdata[i]["subject"]["name"] in short_lesson_name:
                     printCol(" " + short_lesson_name[tmpdata[i]["subject"]["name"]], -1, "1;39")
                 else:
@@ -394,9 +384,9 @@ def gradecalc(cookies, data=None, sort=False):
                 print(end="\r\033[K\033[A")
             print(end="\r\033[K")
             printCol("Enter the index (the leftmost number) to select a number.\n", -1, '1;39')
-            printCol("  q     Quit\n", -1, '0;39')
-            printCol("  h     Print help\n", -1, '0;39')
-            printCol("  s     Toggle if grades should be sorted\n", -1, '0;39')
+            printCol("  q     Quit\n", -1)
+            printCol("  h     Print help\n", -1)
+            printCol("  s     Toggle if grades should be sorted\n", -1)
             c = input("Press any key to continue")
             for i in range(5):
                 print(end="\r\033[K\033[A")
@@ -599,7 +589,7 @@ variables = {
 def help():
     space = 20
     printCol('HELP: ' + argv[0] + '\n', -1, '1;39')
-    printSpaced('  -h', space)
+    printCol('  -h', space)
     print('Print this message')
     print()
 
@@ -607,11 +597,11 @@ def help():
     for cmd in commands:
         if 'function' in cmd:
             if 'input' in cmd:
-                printSpaced('  ' + cmd['short'] + ' n', space)
+                printCol('  ' + cmd['short'] + ' n', space)
                 print(cmd['description'], end='')
                 print(' (' + cmd['input'] + ')')
             else:
-                printSpaced('  ' + cmd['short'], space)
+                printCol('  ' + cmd['short'], space)
                 print(cmd['description'])
 
     print()
@@ -619,11 +609,11 @@ def help():
     for cmd in commands:
         if not 'function' in cmd:
             if 'input' in cmd and cmd['input'] != 'bool':
-                printSpaced('  ' + cmd['short'] + ' n', space)
+                printCol('  ' + cmd['short'] + ' n', space)
                 print(cmd['description'], end='')
                 print(' (' + cmd['input'] + ')')
             else:
-                printSpaced('  ' + cmd['short'], space)
+                printCol('  ' + cmd['short'], space)
                 print(cmd['description'])
 
 def unknown_argument(arg, subcommand):
